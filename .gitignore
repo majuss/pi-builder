@@ -2,3 +2,13 @@
 /.cache/
 /.build/
 /.built.conf
+*.img
+*.gz
+root_fs/
+*.xz
+archie/
+testing/
+os/
+boot/
+boot.tar
+root.tar

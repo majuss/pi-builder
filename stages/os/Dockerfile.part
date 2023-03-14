@@ -1,4 +1,10 @@
 # https://lists.gnu.org/archive/html/qemu-devel/2017-10/msg03681.html
+SHELL ["/usr/bin/bash"]
+
+
+RUN echo "foobartz---------------------"
+
+
 RUN echo "$LOCALE.UTF-8 UTF-8" > /etc/locale.gen \
 	&& ([ "$LOCALE" == "en_US" ] || echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen) \
 	&& locale-gen

@@ -32,7 +32,7 @@ DOCKER ?= docker
 
 HOSTNAME ?= pi
 LOCALE ?= en_US
-TIMEZONE ?= Europe/Moscow
+TIMEZONE ?= Europe/Berlin
 #REPO_URL ?= http://mirror.yandex.ru/archlinux-arm
 REPO_URL ?= http://de3.mirror.archlinuxarm.org
 PIKVM_REPO_URL ?= https://files.pikvm.org/repos/arch/
@@ -48,6 +48,7 @@ QEMU_RM ?= 1
 # =====
 _IMAGES_PREFIX = pi-builder-$(ARCH)
 _TOOLBOX_IMAGE = $(_IMAGES_PREFIX)-toolbox
+_PIOS_IMAGE_NAME = pi_image.img.xz
 
 _CACHE_DIR = ./.cache
 _BUILD_DIR = ./.build
@@ -77,7 +78,11 @@ ifeq ($(_RPI_ROOTFS_TYPE),)
 $(error Invalid board and architecture combination: $(BOARD)-$(ARCH))
 endif
 
-_RPI_ROOTFS_URL = $(REPO_URL)/os/ArchLinuxARM-$(_RPI_ROOTFS_TYPE)-latest.tar.gz
+
+# _RPI_ROOTFS_URL = https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-02-22/2023-02-21-raspios-bullseye-arm64-lite.img.xz
+_RPI_ROOTFS_URL = https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2023-02-22/2023-02-21-raspios-bullseye-armhf-lite.img.xz
+#_RPI_ROOTFS_URL = $(REPO_URL)/os/ArchLinuxARM-$(_RPI_ROOTFS_TYPE)-latest.tar.gz
+
 _RPI_BASE_ROOTFS_TGZ = $(_CACHE_DIR)/base-rootfs-$(BOARD).tar.gz
 _RPI_BASE_IMAGE = $(_IMAGES_PREFIX)-base-$(BOARD)
 _RPI_RESULT_IMAGE = $(PROJECT)-$(_IMAGES_PREFIX)-result-$(BOARD)
@@ -109,7 +114,7 @@ define read_built_config
 $(shell grep "^$(1)=" $(_BUILT_IMAGE_CONFIG) | cut -d"=" -f2)
 endef
 
-define show_running_config
+define show_running_config # 5.1th step in make
 $(call say,"Running configuration")
 @ echo "    PROJECT = $(PROJECT)"
 @ echo "    BOARD   = $(BOARD)"
@@ -181,7 +186,7 @@ shell: override RUN_OPTS:="$(RUN_OPTS) -i"
 shell: run
 
 
-toolbox:
+toolbox: # 1st step in make
 	$(call say,"Ensuring toolbox image")
 	$(DOCKER) build \
 			--rm \
@@ -192,7 +197,7 @@ toolbox:
 	$(call say,"Toolbox image is ready")
 
 
-binfmt: $(__DEP_TOOLBOX)
+binfmt: $(__DEP_TOOLBOX) # 2nd step in make
 	$(call say,"Ensuring $(_QEMU_GUEST_ARCH) binfmt")
 	$(DOCKER) run \
 			--rm \
@@ -214,7 +219,7 @@ scan: $(__DEP_TOOLBOX)
 		$(_TOOLBOX_IMAGE) arp-scan --localnet | grep -Pi "\s(b8:27:eb:|dc:a6:32:)" || true
 
 
-os: $(__DEP_BINFMT) _buildctx
+os: $(__DEP_BINFMT) _buildctx # 5th step in make and last step TODO analyse env vars what they are doing
 	$(call say,"Building OS")
 	rm -f $(_BUILT_IMAGE_CONFIG)
 	$(DOCKER) build \
@@ -235,11 +240,11 @@ os: $(__DEP_BINFMT) _buildctx
 	echo "IMAGE=$(_RPI_RESULT_IMAGE)" > $(_BUILT_IMAGE_CONFIG)
 	echo "HOSTNAME=$(HOSTNAME)" >> $(_BUILT_IMAGE_CONFIG)
 	$(call show_running_config)
-	$(call say,"Build complete")
+	$(call say,"Build complete") 
 
 
 # =====
-_buildctx: _rpi_base_rootfs_tgz qemu
+_buildctx: _rpi_base_rootfs_tgz qemu # 4th step in make
 	$(call say,"Assembling main Dockerfile")
 	rm -rf $(_BUILD_DIR)
 	mkdir -p $(_BUILD_DIR)
@@ -259,15 +264,38 @@ _buildctx: _rpi_base_rootfs_tgz qemu
 	$(call say,"Main Dockerfile is ready")
 
 
-_rpi_base_rootfs_tgz:
+_rpi_base_rootfs_tgz: # 3rd step in make - downloads base root fs as tgz file not an image
 	$(call say,"Ensuring base rootfs")
 	if [ ! -e $(_RPI_BASE_ROOTFS_TGZ) ]; then \
 		mkdir -p $(_CACHE_DIR) \
-		&& echo "Signature: 8a477f597d28d172789f06886806bc55" > "$(_CACHE_DIR)/CACHEDIR.TAG" \
-		&& curl -L -f $(_RPI_ROOTFS_URL) -z $(_RPI_BASE_ROOTFS_TGZ) -o $(_RPI_BASE_ROOTFS_TGZ) \
+		&& cd $(_CACHE_DIR) \
+		&& curl -L -f $(_RPI_ROOTFS_URL) -o $(_PIOS_IMAGE_NAME) \
+		&& unxz -f $(_PIOS_IMAGE_NAME) \
+		&& 7z x -aoa pi_image.img 1.img \
+		&& mkdir -p root_fs \
+		&& cd root_fs \
+		&& 7z x -aoa ../1.img \
+		&& rm -rf lib \
+		&& ln -s usr/lib lib \
+		&& cd ../.. \
+		&& chmod -R +x .cache/root_fs/usr/bin/bash \
+		&& cd .cache/root_fs \
+		&& tar -czf ../.$(_RPI_BASE_ROOTFS_TGZ) * \
+		&& echo "Signature: 8a477f597d28d172789f06886806bc55" > "../.$(_CACHE_DIR)/CACHEDIR.TAG" \
 	; fi
+	
 	$(call say,"Base rootfs is ready")
 
+# _rpi_base_rootfs_tgz: # 3rd step in make - downloads base root fs as tgz file not an image
+# 	$(call say,"Ensuring base rootfs")
+# 	if [ ! -e $(_RPI_BASE_ROOTFS_TGZ) ]; then \
+# 		mkdir -p $(_CACHE_DIR) \
+# 		&& cd $(_CACHE_DIR) \
+# 		&& curl -L -f $(_RPI_ROOTFS_URL) -o base-rootfs-rpi4.tar.gz \
+# 		&& echo "Signature: 8a477f597d28d172789f06886806bc55" > "CACHEDIR.TAG" \
+# 	; fi
+	
+# 	$(call say,"Base rootfs is ready")
 
 qemu: $(_QEMU_STATIC) $(_QEMU_STATIC)-orig
 
