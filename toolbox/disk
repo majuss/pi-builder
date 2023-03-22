@@ -83,8 +83,8 @@ def _format_disk(device_path: str) -> None:
     (parted, _) = _parse_script(sys.stdin.read())
     cmds: List[List[str]] = []
     for cmd in parted:
-        cmds.append(["/usr/bin/parted", device_path, "-a", "optimal", "-s", *cmd])
-    cmds.append(["/usr/bin/partprobe", device_path])
+        cmds.append(["/sbin/parted", device_path, "-a", "optimal", "-s", *cmd])
+    cmds.append(["/sbin/partprobe", device_path])
     cmds.append(["/usr/bin/partx", "-vu", device_path])
     _run_commands(cmds)
 
@@ -95,11 +95,11 @@ def _mkfs_disk(device_path: str) -> None:
     for mkfs in filesystems:
         cmd: List[str] = []
         if mkfs.fs == "fat32":
-            cmd.append("/usr/bin/mkfs.vfat")
+            cmd.append("/sbin/mkfs.vfat")
             if mkfs.label:
                 cmd.extend(["-n", mkfs.label])
         elif mkfs.fs == "ext4":
-            cmd.append("/usr/bin/mkfs.ext4")
+            cmd.append("/sbin/mkfs.ext4")
             if mkfs.label:
                 cmd.extend(["-L", mkfs.label])
             if mkfs.reserved:
@@ -108,7 +108,7 @@ def _mkfs_disk(device_path: str) -> None:
             raise RuntimeError(f"Unsupported filesystem: {mkfs.fs}")
         cmd.append(_make_partition(device_path, mkfs.npart))
         cmds.append(cmd)
-    cmds.append(["/usr/bin/partprobe", device_path])
+    cmds.append(["/sbin/partprobe", device_path])
     cmds.append(["/usr/bin/partx", "-vu", device_path])
     _run_commands(cmds)
 
@@ -124,10 +124,10 @@ def _mount_disk(device_path: str, prefix_path: str, mount: bool) -> None:
             part_path = _make_partition(device_path, mkfs.npart)
             if mount:
                 mount_path = prefix_path + "/" + mkfs.mount
-                cmds.append(["/usr/bin/mkdir", "-p", mount_path])
-                cmds.append(["/usr/bin/mount", part_path, mount_path])
+                cmds.append(["/bin/mkdir", "-p", mount_path])
+                cmds.append(["/bin/mount", part_path, mount_path])
             else:
-                cmds.append(["/usr/bin/umount", part_path])
+                cmds.append(["/bin/umount", part_path])
     _run_commands(cmds)
 
 

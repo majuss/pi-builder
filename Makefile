@@ -39,7 +39,7 @@ PIKVM_REPO_URL ?= https://files.pikvm.org/repos/arch/
 PIKVM_REPO_KEY ?= 912C773ABBD1B584
 BUILD_OPTS ?=
 
-CARD ?= /dev/mmcblk0
+CARD ?= /dev/sdd
 
 QEMU_PREFIX ?= /usr
 QEMU_RM ?= 1
@@ -263,28 +263,37 @@ _buildctx: _rpi_base_rootfs_tgz qemu # 4th step in make
 	done
 	$(call say,"Main Dockerfile is ready")
 
-
 _rpi_base_rootfs_tgz: # 3rd step in make - downloads base root fs as tgz file not an image
 	$(call say,"Ensuring base rootfs")
 	if [ ! -e $(_RPI_BASE_ROOTFS_TGZ) ]; then \
 		mkdir -p $(_CACHE_DIR) \
-		&& cd $(_CACHE_DIR) \
-		&& curl -L -f $(_RPI_ROOTFS_URL) -o $(_PIOS_IMAGE_NAME) \
-		&& unxz -f $(_PIOS_IMAGE_NAME) \
-		&& 7z x -aoa pi_image.img 1.img \
-		&& mkdir -p root_fs \
-		&& cd root_fs \
-		&& 7z x -aoa ../1.img \
-		&& rm -rf lib \
-		&& ln -s usr/lib lib \
-		&& cd ../.. \
-		&& chmod -R +x .cache/root_fs/usr/bin/bash \
-		&& cd .cache/root_fs \
-		&& tar -czf ../.$(_RPI_BASE_ROOTFS_TGZ) * \
+		&& cp base-rootfs-rpi4.tar.gz $(_CACHE_DIR)/ \
 		&& echo "Signature: 8a477f597d28d172789f06886806bc55" > "../.$(_CACHE_DIR)/CACHEDIR.TAG" \
 	; fi
 	
 	$(call say,"Base rootfs is ready")
+
+# _rpi_base_rootfs_tgz: # 3rd step in make - downloads base root fs as tgz file not an image
+# 	$(call say,"Ensuring base rootfs")
+# 	if [ ! -e $(_RPI_BASE_ROOTFS_TGZ) ]; then \
+# 		mkdir -p $(_CACHE_DIR) \
+# 		&& cd $(_CACHE_DIR) \
+# 		&& curl -L -f $(_RPI_ROOTFS_URL) -o $(_PIOS_IMAGE_NAME) \
+# 		&& unxz -f $(_PIOS_IMAGE_NAME) \
+# 		&& 7z x -aoa pi_image.img 1.img \
+# 		&& mkdir -p root_fs \
+# 		&& cd root_fs \
+# 		&& 7z x -aoa ../1.img \
+# 		&& rm -rf lib \
+# 		&& ln -s usr/lib lib \
+# 		&& cd ../.. \
+# 		&& chmod -R +x .cache/root_fs/usr/bin/bash \
+# 		&& cd .cache/root_fs \
+# 		&& tar -czf ../.$(_RPI_BASE_ROOTFS_TGZ) * \
+# 		&& echo "Signature: 8a477f597d28d172789f06886806bc55" > "../.$(_CACHE_DIR)/CACHEDIR.TAG" \
+# 	; fi
+	
+# 	$(call say,"Base rootfs is ready")
 
 # _rpi_base_rootfs_tgz: # 3rd step in make - downloads base root fs as tgz file not an image
 # 	$(call say,"Ensuring base rootfs")
@@ -362,7 +371,7 @@ format: $(__DEP_TOOLBOX)
 	$(call check_build)
 	$(call say,"Formatting $(CARD)")
 	$(__DOCKER_RUN_TMP_PRIVILEGED) dd if=/dev/zero of=$(CARD) bs=1M count=32
-	$(__DOCKER_RUN_TMP_PRIVILEGED) partprobe $(CARD)
+	$(__DOCKER_RUN_TMP_PRIVILEGED) /sbin/partprobe $(CARD)
 	cat disk.conf | $(__DOCKER_RUN_TMP_PRIVILEGED) /tools/disk format $(CARD)
 	cat disk.conf | $(__DOCKER_RUN_TMP_PRIVILEGED) /tools/disk mkfs $(CARD)
 	$(call say,"Format complete")
@@ -405,8 +414,7 @@ ifneq ($(UBOOT),)
 		--hostname $(call read_built_config,HOSTNAME) \
 		$(call read_built_config,IMAGE) \
 		bash -c " \
-			echo 'y' | pacman --noconfirm -Syu uboot-pikvm-$(UBOOT) \
-			&& cp -a /boot/* /tmp/boot/ \
+			cp -a /boot/* /tmp/boot/ \
 		"
 	$(call say,"U-Boot installation complete")
 endif	
