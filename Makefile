@@ -39,7 +39,7 @@ PIKVM_REPO_URL ?= https://files.pikvm.org/repos/arch/
 PIKVM_REPO_KEY ?= 912C773ABBD1B584
 BUILD_OPTS ?=
 
-CARD ?= /dev/sdc
+CARD ?= /dev/sdd
 
 QEMU_PREFIX ?= /usr
 QEMU_RM ?= 1
@@ -81,6 +81,8 @@ endif
 
 # _RPI_ROOTFS_URL = https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-02-22/2023-02-21-raspios-bullseye-arm64-lite.img.xz
 _RPI_ROOTFS_URL = https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2023-02-22/2023-02-21-raspios-bullseye-armhf-lite.img.xz
+# https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2023-02-22/2023-02-21-raspios-bullseye-armhf-lite.img.xz
+
 #_RPI_ROOTFS_URL = $(REPO_URL)/os/ArchLinuxARM-$(_RPI_ROOTFS_TYPE)-latest.tar.gz
 
 _RPI_BASE_ROOTFS_TGZ = $(_CACHE_DIR)/base-rootfs-$(BOARD).tar.gz

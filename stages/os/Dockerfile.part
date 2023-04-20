@@ -8,8 +8,8 @@ ENV LC_ALL en_US.UTF-8
 
 #RUN echo "HOOKS=(base udev block filesystems)" >> /etc/mkinitcpio.conf
 
-RUN sed -i -e "s|\<root=/dev/mmcblk0p2\>|root=LABEL=PIROOT|g" /boot/cmdline.txt
-RUN sed -i -e "s|^/dev/mmcblk0p1\>|LABEL=PIBOOT|g" /etc/fstab
+RUN sed -i -e "s|\<root=/dev/rootfs\>|root=LABEL=PIROOT|g" /boot/cmdline.txt
+RUN sed -i -e "s|^/dev/bootfs\>|LABEL=PIBOOT|g" /etc/fstab
 
 #RUN echo "Server = $REPO_URL/\$arch/\$repo" > /etc/pacman.d/mirrorlist \
 #	&& pacman-key --init \
@@ -17,7 +17,7 @@ RUN sed -i -e "s|^/dev/mmcblk0p1\>|LABEL=PIBOOT|g" /etc/fstab
 
 #RUN sed -i -e "s/^CheckSpace/#!!!CheckSpace/g" /etc/pacman.conf
 RUN apt update
-RUN apt upgrade -y
+# RUN apt upgrade -y
 RUN apt install -y python3-picamera2 --no-install-recommends
 
 # RUN pacman --noconfirm --ask=4 -Syy \
