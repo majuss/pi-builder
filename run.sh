@@ -1,0 +1,1 @@
+make os BOARD=rpi4 STAGES="__init__ os"
