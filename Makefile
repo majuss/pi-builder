@@ -28,7 +28,7 @@ BOARD ?= rpi4
 ARCH ?= arm
 UBOOT ?=
 STAGES ?= __init__ os pikvm-repo watchdog no-bluetooth no-audit ro ssh-keygen __cleanup__
-DOCKER ?= docker
+DOCKER ?= podman
 
 HOSTNAME ?= pi
 LOCALE ?= en_US
