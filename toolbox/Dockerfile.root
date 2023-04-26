@@ -30,7 +30,7 @@ FROM debian
 RUN apt update \
 	&& apt install -y htop python3 locales parted rsync dosfstools arp-scan openssl udev
 RUN locale-gen
-
+RUN echo "foobar"
 RUN mkdir /tools
 
 COPY install-binfmt /tools/
