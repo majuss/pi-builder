@@ -192,6 +192,7 @@ toolbox: # 1st step in make
 	$(call say,"Ensuring toolbox image")
 	$(DOCKER) build \
 			--rm \
+			--privileged \
 			--tag $(_TOOLBOX_IMAGE) \
 			$(if $(TAG),--tag $(TAG),) \
 			--file toolbox/Dockerfile.root \
