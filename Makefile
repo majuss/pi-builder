@@ -28,7 +28,8 @@ BOARD ?= rpi4
 ARCH ?= arm
 UBOOT ?=
 STAGES ?= __init__ os pikvm-repo watchdog no-bluetooth no-audit ro ssh-keygen __cleanup__
-DOCKER ?= podman --storage-driver=vfs
+#DOCKER ?= podman #--storage-driver=vfs
+DOCKER ?= docker
 
 HOSTNAME ?= pi
 LOCALE ?= en_US

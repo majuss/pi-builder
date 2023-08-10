@@ -1,7 +1,7 @@
 CUSTOM_IMG_NAME=image.img
 CUSTOM_IMG_SIZE=4096
 PT_FILENAME="partition_table.txt"
-RSYNC_FLAGS="-h --progress --modify-window=1 --recursive --ignore-errors"
+RSYNC_FLAGS="-l --modify-window=1 --recursive --ignore-errors"
 
 sudo rm -rf out
 mkdir out
@@ -17,11 +17,13 @@ LODEV=$(/sbin/losetup -a | grep "${CUSTOM_IMG_NAME}" | awk -F: '{ print $1 }')
 sudo mkfs.fat ${LODEV}p1
 mkdir mt_boot
 sudo mount ${LODEV}p1 mt_boot
-sudo rsync ${RSYNC_FLAGS} ../../majuss_builder/pi-builder/.cache/result-rootfs/boot/* mt_boot/
+sudo rsync ${RSYNC_FLAGS} ../.cache/result-rootfs/boot/* mt_boot/
 
 sudo mkfs.ext4 ${LODEV}p2
 mkdir mt_root
 sudo mount ${LODEV}p2 mt_root
-sudo rsync ${RSYNC_FLAGS} ../../majuss_builder/pi-builder/.cache/result-rootfs/* mt_root/
+sudo rsync ${RSYNC_FLAGS} ../.cache/result-rootfs/* mt_root/
 
+sudo umount mt_root
+sudo umount mt_boot
 sudo /sbin/losetup -D

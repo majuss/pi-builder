@@ -12,3 +12,5 @@ os/
 boot/
 boot.tar
 root.tar
+os_fs/
+os_mnt/
