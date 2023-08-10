@@ -1,7 +1,7 @@
-CUSTOM_IMG_NAME=image.img
+CUSTOM_IMG_NAME=raspberry_pi_os.img
 CUSTOM_IMG_SIZE=4096
 PT_FILENAME="partition_table.txt"
-RSYNC_FLAGS="-l --modify-window=1 --recursive --ignore-errors"
+RSYNC_FLAGS="-a -l --modify-window=1 --recursive --ignore-errors"
 
 sudo rm -rf out
 mkdir out
