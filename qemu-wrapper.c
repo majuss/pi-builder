@@ -7,8 +7,8 @@
 int main(int argc, char **argv, char **envp) {
     char *new[argc + 3];
     new[0] = argv[0];
-    new[1] = "-B";
-    new[2] = "0x20000";
+    //new[1] = "-B";
+    //new[2] = "0x20000";
     memcpy(&new[3], &argv[1], sizeof(*argv) * (argc - 1));
     new[argc + 2] = NULL;
 

@@ -25,7 +25,7 @@
 
 PROJECT ?= common
 BOARD ?= rpi4
-ARCH ?= arm
+ARCH ?= aarch64
 UBOOT ?=
 STAGES ?= __init__ os pikvm-repo watchdog no-bluetooth no-audit ro ssh-keygen __cleanup__
 #DOCKER ?= podman #--storage-driver=vfs
@@ -366,6 +366,9 @@ __DOCKER_RUN_TMP_PRIVILEGED = $(DOCKER) run \
 
 clean-all: $(__DEP_TOOLBOX) clean
 	$(__DOCKER_RUN_TMP) rm -rf $(_RPI_RESULT_ROOTFS)
+	rm -rf base-rootfs-rpi4.tar.gz
+	rm -rf originalimage.img
+	rm -rf originalimage64.img
 	rm -rf $(_CACHE_DIR)
 
 

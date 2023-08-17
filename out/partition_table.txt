@@ -1,8 +1,8 @@
 label: dos
-label-id: 0x4c4e106f
-device: ../image.img
+label-id: 0x544c6228
+device: ../originalimage64.img
 unit: sectors
 sector-size: 512
 
-../image.img1 : start=        8192, size=      524288, type=c
-../image.img2 : start=      532480, size=     3309568, type=83
+../originalimage64.img1 : start=        8192, size=      524288, type=c
+../originalimage64.img2 : start=      532480, size=     3571712, type=83
